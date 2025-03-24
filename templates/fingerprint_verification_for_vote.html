@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fingerprint Verification for Voting</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Fingerprint Verification</h1>
+    <p>Please scan your fingerprint to verify your vote for {{ candidate_id }}.</p>
+    <form method="POST">
+        <input type="hidden" name="fingerprint" value="verified"> 
+        <button type="submit">Verify Fingerprint</button>
+    </form>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <p style="color: red;">{{ messages[0] }}</p>
+        {% endif %}
+    {% endwith %}
+</body>
+</html>

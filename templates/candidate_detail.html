@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ candidate['name'] }} Details</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>{{ candidate['name'] }}</h1>
+    <p><strong>Party:</strong> {{ candidate['party'] }}</p>
+    <p><strong>Biography:</strong> {{ candidate['bio'] }}</p>
+
+    <h3>Vote for {{ candidate['name'] }}</h3>
+    <form method="POST">
+        <button type="submit">Vote</button>
+    </form>
+
+    <a href="{{ url_for('candidates_list') }}">Back to Candidates List</a>
+</body>
+</html>

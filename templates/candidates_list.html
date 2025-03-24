@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candidates</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Choose Your Candidate</h1>
+    <div class="candidate-container">
+        {% for candidate_id, candidate in candidates.items() %}
+            <div class="candidate-card">
+                <h2>{{ candidate['name'] }}</h2>
+                <p class="party">Party: {{ candidate['party'] }}</p>
+                <a href="{{ url_for('candidate_detail', candidate_id=candidate_id) }}" class="vote-btn">Vote</a>
+            </div>
+        {% endfor %}
+    </div>
+    <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+</body>
+</html>
