@@ -9,11 +9,12 @@
 <body>
     <h1>Choose Your Candidate</h1>
     <div class="candidate-container">
-        {% for candidate_id, candidate in candidates.items() %}
+        {% for candidate in candidates %}
             <div class="candidate-card">
-                <h2>{{ candidate['name'] }}</h2>
-                <p class="party">Party: {{ candidate['party'] }}</p>
-                <a href="{{ url_for('candidate_detail', candidate_id=candidate_id) }}" class="vote-btn">Vote</a>
+                <img src="{{ url_for('static', filename='party/' + candidate.symbol) }}" alt="{{ candidate.party }} Logo" class="party-symbol">
+                <h2>{{ candidate.name }}</h2>
+                <p class="party">Party: {{ candidate.party }}</p>
+                <a href="{{ url_for('candidate_detail', candidate_id=candidate.id) }}" class="details-btn">View Details</a>
             </div>
         {% endfor %}
     </div>

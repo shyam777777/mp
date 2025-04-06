@@ -171,3 +171,50 @@ button {
     background: #1565c0;
     transform: scale(1.05);
 }
+
+input[type="file"] {
+    width: 100%;
+    padding: 14px;
+    margin: 10px -20px;
+    border: 2px solid #000080;
+    border-radius: 8px;
+    font-size: 16px;
+    text-align: center;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+input[type="file"]:hover {
+    border-color: #ff9933;
+    box-shadow: 0 0 8px rgba(255, 153, 51, 0.5);
+}
+
+input[type="file"]:focus {
+    outline: none;
+    border-color: #ff9933;
+    box-shadow: 0 0 8px rgba(255, 153, 51, 0.5);
+}
+
+/* Style for file upload button inside input */
+input[type="file"]::-webkit-file-upload-button {
+    background: linear-gradient(45deg, #138808, #0b5d05);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+input[type="file"]::-webkit-file-upload-button:hover {
+    background: linear-gradient(45deg, #0f7307, #0a4e03);
+}
+.message {
+    color: red;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 10px;
+}

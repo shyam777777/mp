@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register User</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Register User</h1>
+        
+        <form id="registerForm" enctype="multipart/form-data">
+            <label for="name">Name:</label>
+            <input type="text" id="name" required>
+        
+            <label for="phone_number">Phone Number:</label>
+            <input type="text" id="phone_number" required>
+        
+            <label for="voterid">Voter ID:</label>
+            <input type="text" id="voterid" required>
+        
+            <label for="address">Address:</label>
+            <input type="text" id="address" required>
+        
+            <label for="aadhaar">Aadhaar:</label>
+            <input type="text" id="aadhaar" required>
+        
+            <label for="photo">Upload Photo:</label>
+            <input type="file" id="photo" accept="image/*" required>
+        
+            <button type="button" id="captureBtn">Capture Fingerprint</button>
+            <p id="fingerprintStatus">Waiting for fingerprint...</p>
+        
+            <button type="submit" id="registerBtn" disabled>Register</button>
+        </form>
+                
+
+        <p id="statusMessage"></p>
+        
+    </div>
+
+    <script>
+        document.getElementById("captureBtn").addEventListener("click", async function() {
+            document.getElementById("fingerprintStatus").innerText = "Capturing fingerprint...";
+            
+            try {
+                let response = await fetch("/capture_fingerprint");
+                let result = await response.json();
+
+                if (response.ok) {
+                    document.getElementById("fingerprintStatus").innerText = "Fingerprint captured successfully!";
+                    document.getElementById("captureBtn").disabled = true;
+                    document.getElementById("registerBtn").disabled = false;  // Enable Register button
+                    localStorage.setItem("fingerprint", result.fingerprint); // Store fingerprint in localStorage
+                } else {
+                    document.getElementById("fingerprintStatus").innerText = "Error: " + result.error;
+                }
+            } catch (error) {
+                document.getElementById("fingerprintStatus").innerText = "Error connecting to server.";
+            }
+        });
+
+        document.getElementById("registerForm").addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            let formData = new FormData();
+            formData.append("name", document.getElementById("name").value);
+            formData.append("phone_number", document.getElementById("phone_number").value);
+            formData.append("voterid", document.getElementById("voterid").value);
+            formData.append("address", document.getElementById("address").value);
+            formData.append("aadhaar", document.getElementById("aadhaar").value);
+            formData.append("photo", document.getElementById("photo").files[0]);
+
+            let fingerprint = localStorage.getItem("fingerprint");
+            if (!fingerprint) {
+                document.getElementById("statusMessage").innerText = "No fingerprint data. Capture first.";
+                return;
+            }
+            formData.append("fingerprint", fingerprint);
+
+            try {
+                let response = await fetch("/register_user", {
+                    method: "POST",
+                    body: formData
+                });
+
+                let result = await response.json();
+                document.getElementById("statusMessage").innerText = result.message || result.error;
+            } catch (error) {
+                document.getElementById("statusMessage").innerText = "Error connecting to server.";
+            }
+        });
+    </script>
+</body>
+</html>
