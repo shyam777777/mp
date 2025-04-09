@@ -325,68 +325,53 @@ def candidate_detail(candidate_id):
 
     return render_template('candidate_detail.html', candidate=candidate)
 
+def verify_user_fingerprint(user, fingerprint_data):
+    try:
+        decrypted_fp = decrypt_fingerprint(user.fingerprint_template)
+        stored_fp = np.frombuffer(decrypted_fp, dtype=np.uint8).reshape(1, 1, -1)
+        input_fingerprint = np.frombuffer(fingerprint_data, dtype=np.uint8).reshape(1, 1, -1)
 
+        similarity = model.predict([input_fingerprint, stored_fp])[0][0]
+        print(f"🔍 Fingerprint similarity score: {similarity}")
 
-@app.route('/fingerprint_for_vote', methods=['GET', 'POST'])
+        return similarity > 0.5
+    except Exception as e:
+        print(f"❌ Error during fingerprint verification: {e}")
+        return False
+
+@app.route('/fingerprint_for_vote', methods=['POST'])
 def fingerprint_verification_for_vote():
     candidate_id = session.get('selected_candidate')
     if not candidate_id:
         return jsonify({"error": "Candidate ID is missing", "redirect": url_for('candidates_list')}), 400
-    
-    candidate = Candidates.query.filter_by(id=candidate_id).first()
-    if request.method == "POST":
-        return render_template("fingerprint_verification_for_vote.html", candidate=candidate)
 
-    try:
-        print("in try block")
-        if request.content_type == "application/x-www-form-urlencoded":
-            fingerprint_base64 = request.form.get("fingerprint")  # Get data from form
-        else:
-            data = request.get_json()
-            fingerprint_base64 = data.get("fingerprint") if data else None
+    if 'voterid' not in session:
+        return jsonify({"error": "User not logged in"}), 401
 
-        if not fingerprint_base64:
-            return jsonify({"error": "Missing fingerprint data"}), 400
+    user = User.query.filter_by(voterId=session['voterid']).first()
+    candidate = Candidates.query.get(candidate_id)
 
-        fingerprint_data = base64.b64decode(fingerprint_base64)
-        print(fingerprint_data)
-        if 'voterid' not in session:
-            return jsonify({"error": "User not logged in"}), 401
+    if not user or not candidate:
+        return jsonify({"error": "User or Candidate not found", "redirect": url_for('login')}), 404
 
-        voterid = session['voterid']
-        user = User.query.filter_by(voterId=voterid).first()
-        
-        if not user:
-            session.pop('voterid', None)
-            return jsonify({"error": "User not found", "redirect": url_for('login')}), 404
-        
-        if user.has_voted:
-            return jsonify({"error": "Already voted", "redirect": url_for('vote_success', candidate_id=candidate_id)}), 403
+    if user.has_voted:
+        return jsonify({"error": "You have already voted", "redirect": url_for('vote_success', candidate_id=candidate_id)}), 403
 
-        try:
-            decrypted_fp = decrypt_fingerprint(user.fingerprint_template)
-            stored_fp = np.frombuffer(decrypted_fp, dtype=np.uint8).reshape(1, 1, -1)
-            input_fingerprint = np.frombuffer(fingerprint_data, dtype=np.uint8).reshape(1, 1, -1)
+    # Accept both form-data and JSON
+    fingerprint_base64 = request.form.get("fingerprint") or (request.get_json() or {}).get("fingerprint")
 
-            similarity = model.predict([input_fingerprint, stored_fp])[0][0]
-            print(similarity)
+    if not fingerprint_base64:
+        return jsonify({"error": "Missing fingerprint data"}), 400
 
-            if similarity > 0.5:
-                session['authenticated'] = True
-                candidate.votes += 1
-                user.has_voted = True
-                db.session.commit()
-                print("done")
-                return redirect(url_for('vote_success', candidate_id=candidate_id))
+    fingerprint_data = base64.b64decode(fingerprint_base64)
 
-        except Exception as decrypt_error:
-            print(f"❌ Decryption failed:  {decrypt_error}")
-            return jsonify({"error": "Decryption failed", "redirect": url_for('candidate_detail', candidate_id=candidate_id)}), 400
-
+    if verify_user_fingerprint(user, fingerprint_data):
+        candidate.votes += 1
+        user.has_voted = True
+        db.session.commit()
+        return jsonify({"status": "success", "redirect": url_for('vote_success', candidate_id=candidate_id)})
+    else:
         return jsonify({"status": "no_match", "redirect": url_for('candidate_detail', candidate_id=candidate_id)})
-
-    except Exception as e:
-        return jsonify({"error": str(e), "redirect": url_for('candidate_detail', candidate_id=candidate_id)}), 400
 
 
 
