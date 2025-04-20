@@ -8,13 +8,15 @@
 </head>
 <body>
     <h1>Fingerprint Verification</h1>
-    <p>Please scan your fingerprint to verify.</p>
+    <p>Please scan your fingerprint to verify for <strong>{{ purpose }}</strong>.</p>
 
     <button id="captureBtn">Scan Fingerprint</button>
     <p id="statusMessage">Waiting for fingerprint...</p>
 
     <script>
-        document.getElementById("captureBtn").addEventListener("click", async function() {
+        const purpose = "{{ purpose }}";
+
+        document.getElementById("captureBtn").addEventListener("click", async function () {
             document.getElementById("statusMessage").innerText = "Scanning fingerprint...";
 
             try {
@@ -26,32 +28,35 @@
 
                     let verifyResponse = await fetch("/fingerprint", {
                         method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ fingerprint })
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            fingerprint: fingerprint,
+                            purpose: purpose
+                        })
                     });
 
                     let verifyResult = await verifyResponse.json();
 
-                    if (verifyResult.status === "match") {
-                        document.getElementById("statusMessage").innerHTML = 
-                            `<span style="color: green;">✅ Fingerprint Matched: ${verifyResult.user}</span>`;
-
+                    if (verifyResult.status === "match" || verifyResult.status === "vote_success" || verifyResult.status === "already_voted") {
+                        document.getElementById("statusMessage").innerHTML =
+                            `<span style="color: green;">✅ Success! Redirecting...</span>`;
                         setTimeout(() => {
-                            window.location.href = verifyResult.redirect;  // Redirect to candidates page
+                            window.location.href = verifyResult.redirect;
                         }, 2000);
-                        
                     } else {
-                        document.getElementById("statusMessage").innerHTML = 
-                            `<span style="color: red;">❌ No Match Found. Redirecting to Login...</span>`;
-
+                        document.getElementById("statusMessage").innerHTML =
+                            `<span style="color: red;">❌ Fingerprint did not match. Redirecting to login...</span>`;
                         setTimeout(() => {
-                            window.location.href = verifyResult.redirect;  // Redirect to login page
+                            window.location.href = verifyResult.redirect;
                         }, 2000);
                     }
                 } else {
                     document.getElementById("statusMessage").innerText = "Error: " + result.error;
                 }
             } catch (error) {
+                console.error(error);
                 document.getElementById("statusMessage").innerText = "Error connecting to server.";
             }
         });

@@ -23,9 +23,9 @@
     <p><strong>Contact:</strong> {{ candidate.contact_info }}</p>
 
     <h3>Vote for {{ candidate.name }}</h3>
-    <form method="POST" action="{{ url_for('fingerprint_verification_for_vote') }}">
-        <button type="submit">Vote</button>
-    </form>
+    <form method="POST">
+        <button type="submit">Confirm Vote with Fingerprint</button>
+      </form>
 
     <a href="{{ url_for('candidates_list') }}">Back to Candidates List</a>
 </body>
